@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# Simple Android screen recording with a simple function
+# adb-video <output-name.mp4>
+
+ADB=$ANDROID_HOME/platform-tools/adb
+
+output=$1
+unique="recording-$(date +%Y-%m-%d_%H-%M-%S).mp4"
+
+# Generate a random possibly unique name for the output file
+if [ -z $output ]; then
+    output=$unique
+fi
+
+devicelocation="/sdcard/$unique"
+
+
+function cleanup() {
+
+  echo ""
+  echo "Finishing movie recording"
+  sleep .2
+
+  echo "Copying movie to: $output"
+  $ADB pull $devicelocation "$output"
+
+  echo "Device cleanup: $devicelocation"
+  $ADB shell rm $devicelocation
+
+  exit 0
+}
+
+echo "Recording to device storage: $devicelocation"
+echo "Press Ctrl-C to stop recording"
+
+trap cleanup INT
+$ADB shell screenrecord "$devicelocation"
